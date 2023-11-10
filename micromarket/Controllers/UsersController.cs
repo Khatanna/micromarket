@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using micromarket.Config;
 using micromarket.Models;
+
 
 namespace micromarket.Controllers
 {
@@ -29,7 +25,12 @@ namespace micromarket.Controllers
           {
               return NotFound();
           }
-            return await _context.usuario.ToListAsync();
+
+            var userWithRoles = await _context.usuario
+                  .Include(u => u.roles)
+                  .ToListAsync();
+           
+            return userWithRoles;
         }
 
         // GET: api/Users/5
@@ -55,7 +56,7 @@ namespace micromarket.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(string id, User user)
         {
-            if (id != user.id)
+            if (id != user.nombre_de_usuario)
             {
                 return BadRequest();
             }
@@ -97,7 +98,7 @@ namespace micromarket.Controllers
             }
             catch (DbUpdateException)
             {
-                if (UserExists(user.id))
+                if (UserExists(user.nombre_de_usuario))
                 {
                     return Conflict();
                 }
@@ -107,7 +108,7 @@ namespace micromarket.Controllers
                 }
             }
 
-            return CreatedAtAction("GetUser", new { id = user.id }, user);
+            return CreatedAtAction("GetUser", new { id = user.nombre_de_usuario }, user);
         }
 
         // DELETE: api/Users/5
@@ -132,7 +133,7 @@ namespace micromarket.Controllers
 
         private bool UserExists(string id)
         {
-            return (_context.usuario?.Any(e => e.id == id)).GetValueOrDefault();
+            return (_context.usuario?.Any(e => e.nombre_de_usuario == id)).GetValueOrDefault();
         }
     }
 }
