@@ -91,6 +91,9 @@ namespace micromarket.Controllers
           {
               return Problem("Entity set 'MySqlDbContext.usuario'  is null.");
           }
+            user.nombre_de_usuario = $"{user.nombres}.{user.apellido_paterno}";
+            user.contraseña = $"{user.nombres.ToLower()}.{user.apellido_paterno.ToLower()}";
+            
             _context.usuario.Add(user);
             try
             {
@@ -113,7 +116,7 @@ namespace micromarket.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
+        public async Task<ActionResult<User>> DeleteUser(string id)
         {
             if (_context.usuario == null)
             {
@@ -128,7 +131,7 @@ namespace micromarket.Controllers
             _context.usuario.Remove(user);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return user;
         }
 
         private bool UserExists(string id)
