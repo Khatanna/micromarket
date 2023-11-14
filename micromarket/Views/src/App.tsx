@@ -9,13 +9,13 @@ const getImageUrl = (imageName: string) => {
   return getDownloadURL(imageRef);
 };
 function App() {
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  // const [imageUrl, setImageUrl] = useState<string | undefined>();
 
-  useEffect(() => {
-    getImageUrl(
-      "productos/categorias/alimento soya bebible/3-300x300.png",
-    ).then((value) => setImageUrl(value));
-  }, []);
+  // useEffect(() => {
+  //   getImageUrl(
+  //     "productos/categorias/alimento soya bebible/3-300x300.png",
+  //   ).then((value) => setImageUrl(value));
+  // }, []);
 
   return (
     <>

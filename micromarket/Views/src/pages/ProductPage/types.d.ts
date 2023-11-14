@@ -1,3 +1,5 @@
+import { Category } from "../CategoryPage/types";
+
 interface Product {
   id: string;
   codigo: string;
@@ -5,7 +7,7 @@ interface Product {
   precio: string;
   descripción: string;
   imagenURL: string;
-  categoria: {
-    nombre: string;
-  };
+  categoria: Category
+  categoriaId: string
+  imagen: FileList
 }

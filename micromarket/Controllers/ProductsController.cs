@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using micromarket.Config;
 using micromarket.Models;
+using System.Configuration;
 
 namespace micromarket.Controllers
 {
@@ -53,7 +54,7 @@ namespace micromarket.Controllers
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(string id, Product product)
+        public async Task<ActionResult<Product>> PutProduct(string id, Product product)
         {
             if (id != product.codigo)
             {
@@ -78,7 +79,7 @@ namespace micromarket.Controllers
                 }
             }
 
-            return NoContent();
+      return product;
         }
 
         // POST: api/Products
@@ -90,6 +91,17 @@ namespace micromarket.Controllers
           {
               return Problem("Entity set 'MySqlDbContext.Product'  is null.");
           }
+      //Product lastProduct = _context.Product.OrderByDescending(p => p.codigo).First();
+      //      if (lastProduct == null)
+      //{
+      //  return Conflict();
+      //}
+      // var lastSequence = lastProduct.codigo.Split("-").Last();
+      // var codeNumber = Int32.Parse(lastSequence);
+      // var code = lastSequence.Replace(codeNumber.ToString(), (codeNumber+1).ToString());
+      // var category = _context.Category.Find(product.categoriaId).prefijo;
+
+      // product.codigo = $"DNT-{category}-{code}";
             _context.Product.Add(product);
             try
             {

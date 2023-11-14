@@ -1,25 +1,23 @@
-import { AddBox, Rowing, Warning } from "@mui/icons-material";
+import { AddBox, Scanner, Warning } from "@mui/icons-material";
 import {
   Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
   CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Table, { Alignment, TableColumn } from "react-data-table-component";
 import { useAxiosStore } from "../../../../state/useAxiosStore";
-import { ProductForm } from "../ProductForm";
+import { useProductStore } from "../../state/useProductStore";
 import { ButtonMenu } from "../ButtonMenu";
-import Barcode from "react-barcode";
+import { ProductDetail } from "../ProductDetail";
+import { ProductForm } from "../ProductForm";
+import { ProductScanner } from "../ProductScanner";
+import { Product } from "../../types";
 
 export type ProductListProps = {};
 
@@ -27,25 +25,30 @@ const columns: TableColumn<Product>[] = [
   {
     name: "Codigo",
     selector: (row) => row.codigo,
+    sortable: true
   },
   {
     name: "Nombre",
     selector: (row) => row.nombre,
     grow: 2,
+    sortable: true
   },
   {
     name: "Descripción",
     selector: (row) => row.descripción,
     grow: 3,
+    sortable: true
   },
   {
     name: "Categoria",
     selector: (row) => row.categoria.nombre,
     grow: 2,
+    sortable: true
   },
   {
     name: "Precio",
     selector: (row) => row.precio.concat("Bs."),
+    sortable: true
   },
   {
     name: "Imagen",
@@ -58,11 +61,17 @@ const columns: TableColumn<Product>[] = [
   },
 ];
 
-const ProductList: React.FC<ProductListProps> = ({}) => {
+export const content: Record<string, React.FC<{ onClose: () => void }>> = {
+  modalCreate: ProductForm,
+  modalScan: ProductScanner,
+  modalProduct: ProductDetail
+}
+type ContentKey = keyof typeof content;
+const ProductList: React.FC<ProductListProps> = ({ }) => {
   const { axios } = useAxiosStore();
-  const [open, setOpen] = useState(false);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [product, setProduct] = useState<Product>();
+  const [code, setCode ] = useState('');
+  const { setProduct, modal, setModal } = useProductStore();
+
   const { data, isLoading, error, refetch } = useQuery<Product[]>({
     queryKey: ["getAllProducts"],
     queryFn: async () => {
@@ -70,8 +79,14 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
     },
   });
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = ({ title, contentKey }: { title: string, contentKey: ContentKey }) => setModal({ title, open: true, content: content[contentKey] });
+  const handleClose = () => setModal({ open: false });
+  
+  const subHeaderComponentMemo = React.useMemo(() => {
+		return (
+			<TextField size="small" label="Buscar por codigo" onChange={e => setCode(e.target.value)} value={code} />
+		);
+	}, [code]);
 
   return (
     <>
@@ -89,7 +104,7 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
           },
         }}
         columns={columns}
-        data={data ?? []}
+        data={data?.filter(p => p.codigo.toLocaleLowerCase().includes(code.toLowerCase())) ?? []}
         selectableRows
         paginationComponentOptions={{
           rangeSeparatorText: "de",
@@ -98,32 +113,32 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
           selectAllRowsItemText: "Todos",
         }}
         actions={
-          <div>
+          <div className="flex gap-2">
             <Button
               variant="outlined"
               color="success"
               startIcon={<AddBox />}
-              onClick={handleOpen}
+              onClick={() => handleOpen({ title: 'Crear producto', contentKey: "modalCreate"})}
             >
               Añadir producto
             </Button>
-            <Dialog open={open} onClose={handleClose}>
-              <DialogTitle>Crear producto</DialogTitle>
-              <DialogContent>
-                <ProductForm onClose={handleClose}></ProductForm>
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outlined"
+              color="info"
+              startIcon={<Scanner />}
+              onClick={() => handleOpen({ title: 'Escanear producto', contentKey: 'modalScan'})}
+            >
+              Scanear producto
+            </Button>
           </div>
         }
         pointerOnHover
         striped
         subHeader={Boolean(data)}
         pagination
-        subHeaderComponent={
-          <div>
-            <TextField label="Buscar usuario" size="small" />
-          </div>
-        }
+        fixedHeader
+        fixedHeaderScrollHeight="70vh"
+        subHeaderComponent={subHeaderComponentMemo}
         subHeaderAlign={Alignment.LEFT}
         title={
           <Typography variant="h5" component={"div"} align="left">
@@ -131,8 +146,6 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
           </Typography>
         }
         responsive
-        fixedHeader
-        fixedHeaderScrollHeight="20%"
         highlightOnHover
         noDataComponent={
           <div>
@@ -149,8 +162,8 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
               {data && data.length === 0
                 ? "Aun no hay productos en el sistema 🤯"
                 : error
-                ? error.message
-                : "Ocurrio un error 😥"}
+                  ? error.message
+                  : "Ocurrio un error 😥"}
             </Typography>
             {error && (
               <Button LinkComponent={"div"} onClick={() => refetch()}>
@@ -161,57 +174,17 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
         }
         onRowDoubleClicked={(row) => {
           setProduct(row);
-          setOpenDetail(true);
+          handleOpen({ title: `Detalle de producto: (${row.nombre})`, contentKey: 'modalProduct' })
         }}
         progressPending={isLoading}
         progressComponent={<CircularProgress />}
       />
-      {!!product && (
-        <Dialog open={openDetail} onClose={() => setOpenDetail(false)}>
-          <DialogTitle>Detalle del producto</DialogTitle>
-          <DialogContent>
-            <Card sx={{ maxWidth: 550 }}>
-              <CardContent className="flex flex-row gap-3">
-                <div className="">
-                  <CardMedia
-                    component={"img"}
-                    image={product.imagenURL}
-                    title={product.nombre}
-                  />
-                  <Barcode value={product.codigo} width={1.4} height={50} />
-                </div>
-                <div className="flex flex-col justify-between">
-                  <div className="flex gap-2 flex-col ">
-                    <Typography variant="body2" color="text.secondary">
-                      <Chip
-                        label={product.categoria.nombre}
-                        variant="outlined"
-                        color="success"
-                        size="small"
-                      />
-                    </Typography>
-                    <Typography gutterBottom variant="h5" component="div">
-                      {product.nombre}
-                    </Typography>
-
-                    <div className="font-semibold">{product.descripción}</div>
-                  </div>
-                  <div className="self-end">
-                    <Typography variant="h4" color="Highlight">
-                      {product.precio} Bs.
-                    </Typography>
-                  </div>
-                </div>
-              </CardContent>
-
-              {/* <CardActions>
-                <Button size="small">Share</Button>
-                <Button size="small">Learn More</Button>
-              </CardActions> */}
-            </Card>
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={modal.open} onClose={handleClose}>
+        <DialogTitle>{modal.title}</DialogTitle>
+        <DialogContent>
+          {modal.content && <modal.content onClose={handleClose} />}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

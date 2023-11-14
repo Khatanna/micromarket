@@ -7,7 +7,7 @@
 namespace micromarket.Migrations
 {
     /// <inheritdoc />
-    public partial class seed : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,11 +22,18 @@ namespace micromarket.Migrations
                     id = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     nombre = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    padre_id = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_categoria", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_categoria_categoria_padre_id",
+                        column: x => x.padre_id,
+                        principalTable: "categoria",
+                        principalColumn: "id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -126,14 +133,15 @@ namespace micromarket.Migrations
 
             migrationBuilder.InsertData(
                 table: "categoria",
-                columns: new[] { "id", "nombre" },
+                columns: new[] { "id", "nombre", "padre_id" },
                 values: new object[,]
                 {
-                    { "1862b90e-034c-4ce2-9e26-0d3c8ce875e9", "Alimento bebible de Soya" },
-                    { "20368c37-79ab-4bde-aca2-1ff189012374", "Bebida lactea" },
-                    { "968c060a-d5d4-4d3c-997f-80821d65f022", "Bebidas - Agua" },
-                    { "984709a0-79f0-4825-9242-940cdeec6f92", "Bebidas - Bebida refrescante" },
-                    { "9cf7e664-68e5-424f-9dc1-de4780e2c789", "Bebidas - Juguitos" }
+                    { "1862b90e-034c-4ce2-9e26-0d3c8ce875e9", "Alimento bebible de Soya", null },
+                    { "20368c37-79ab-4bde-aca2-1ff189012374", "Bebida lactea", null },
+                    { "968c060a-d5d4-4d3c-997f-80821d65f022", "Bebidas - Agua", null },
+                    { "984709a0-79f0-4825-9242-940cdeec6f92", "Bebidas - Bebida refrescante", null },
+                    { "9cf7e664-68e5-424f-9dc1-de4780e2c789", "Bebidas - Juguitos", null },
+                    { "160d1544-5256-445a-9b82-17ba620fc157", "Alimento no bebible de Soya", "1862b90e-034c-4ce2-9e26-0d3c8ce875e9" }
                 });
 
             migrationBuilder.InsertData(
@@ -153,6 +161,11 @@ namespace micromarket.Migrations
                 name: "IX__roletouser_B",
                 table: "_roletouser",
                 column: "B");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_categoria_padre_id",
+                table: "categoria",
+                column: "padre_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_producto_categoriaId",

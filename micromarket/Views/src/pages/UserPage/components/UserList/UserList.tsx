@@ -22,19 +22,23 @@ const columns: TableColumn<Usuario>[] = [
     name: "Usuario",
     selector: ({ nombres, apellido_paterno, apellido_materno }) =>
       `${nombres} ${apellido_paterno} ${apellido_materno}`,
+      sortable: true,
   },
   {
     name: "Nombre de usuario",
     selector: (row) => row.nombre_de_usuario,
+    sortable: true,
   },
   {
     name: "Estado",
     selector: (row) =>
       row.estado === "ENABLE" ? "Habilitado" : "Deshabilitado",
+      sortable: true,
   },
   {
     name: "Roles",
     selector: (row) => row.roles.map((r) => r.nombre).join(" - "),
+    sortable: true,
   },
   {
     cell: (row) => <ButtonMenu user={row} />,
@@ -129,7 +133,7 @@ const UserList: React.FC<UserListProps> = ({}) => {
           >
             {error && <Warning />}
             {data && data.length === 0
-              ? "Aun no hay usuarios en el sistema 🤯"
+              ? "Me parece que estas solo aqui 😮"
               : error
               ? error.message
               : "Ocurrio un error 😥"}

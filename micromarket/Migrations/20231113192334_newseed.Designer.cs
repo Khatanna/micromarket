@@ -10,8 +10,8 @@ using micromarket.Config;
 namespace micromarket.Migrations
 {
     [DbContext(typeof(MySqlDbContext))]
-    [Migration("20231112204717_seed")]
-    partial class seed
+    [Migration("20231113192334_newseed")]
+    partial class newseed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,12 @@ namespace micromarket.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("padre_id")
+                        .HasColumnType("varchar(255)");
+
                     b.HasKey("id");
+
+                    b.HasIndex("padre_id");
 
                     b.ToTable("categoria");
 
@@ -58,22 +63,31 @@ namespace micromarket.Migrations
                         new
                         {
                             id = "20368c37-79ab-4bde-aca2-1ff189012374",
-                            nombre = "Bebida lactea"
+                            nombre = "Bebidas"
+                        },
+                        new
+                        {
+                            id = "160d1544-5256-445a-9b82-17ba620fc157",
+                            nombre = "Agua",
+                            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374"
                         },
                         new
                         {
                             id = "968c060a-d5d4-4d3c-997f-80821d65f022",
-                            nombre = "Bebidas - Agua"
+                            nombre = "Bebida refrescante",
+                            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374"
                         },
                         new
                         {
                             id = "984709a0-79f0-4825-9242-940cdeec6f92",
-                            nombre = "Bebidas - Bebida refrescante"
+                            nombre = "Juguito",
+                            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374"
                         },
                         new
                         {
                             id = "9cf7e664-68e5-424f-9dc1-de4780e2c789",
-                            nombre = "Bebidas - Juguitos"
+                            nombre = "Frutts tetra",
+                            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374"
                         });
                 });
 
@@ -222,6 +236,15 @@ namespace micromarket.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("micromarket.Models.Category", b =>
+                {
+                    b.HasOne("micromarket.Models.Category", "padre")
+                        .WithMany("categorias")
+                        .HasForeignKey("padre_id");
+
+                    b.Navigation("padre");
+                });
+
             modelBuilder.Entity("micromarket.Models.Product", b =>
                 {
                     b.HasOne("micromarket.Models.Category", "categoria")
@@ -235,6 +258,8 @@ namespace micromarket.Migrations
 
             modelBuilder.Entity("micromarket.Models.Category", b =>
                 {
+                    b.Navigation("categorias");
+
                     b.Navigation("productos");
                 });
 #pragma warning restore 612, 618

@@ -10,12 +10,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAxiosStore } from "../../../../state/useAxiosStore";
+import { Product } from "../../types";
+import { useProductStore } from "../../state/useProductStore";
+import { content } from "../ProductList/ProductList";
 export type ButtonMenuProps = {
   product: Product;
 };
 
 const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const {setProduct, setModal} = useProductStore();
   const queryClient = useQueryClient();
   const { axios } = useAxiosStore();
   const { mutate } = useMutation<
@@ -72,7 +76,10 @@ const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
         anchorEl={anchorEl}
         onClose={handleClose}
       >
-        <MenuItem>
+        <MenuItem onClick={() => {
+          setProduct(product)
+          setModal({title: "Actualizar producto", open: true , content: content["modalCreate"]})
+        }}>
           <ListItemIcon>
             <Edit />
           </ListItemIcon>

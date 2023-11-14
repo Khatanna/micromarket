@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using micromarket.Config;
 using micromarket.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace micromarket.Controllers
 {
@@ -29,7 +30,7 @@ namespace micromarket.Controllers
           {
               return NotFound();
           }
-            return await _context.Category.ToListAsync();
+            return await _context.Category.Include(c=> c.categorias).Where(c => c.padre_id == null).ToListAsync();
         }
 
         // GET: api/Categories/5

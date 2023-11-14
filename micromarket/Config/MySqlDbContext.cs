@@ -33,13 +33,127 @@ namespace micromarket.Config
                 .WithOne(c => c.categoria)
                 .HasForeignKey(p => p.categoriaId);
 
-            modelBuilder.Entity<Category>().HasData(
-                new Category { id = "1862b90e-034c-4ce2-9e26-0d3c8ce875e9", nombre = "Alimento bebible de Soya" },
-                new Category { id = "20368c37-79ab-4bde-aca2-1ff189012374", nombre = "Bebida lactea" },
-                new Category { id = "968c060a-d5d4-4d3c-997f-80821d65f022", nombre = "Bebidas - Agua" },
-                new Category { id = "984709a0-79f0-4825-9242-940cdeec6f92", nombre = "Bebidas - Bebida refrescante" },
-                new Category { id = "9cf7e664-68e5-424f-9dc1-de4780e2c789", nombre = "Bebidas - Juguitos" }
-                );
+      modelBuilder.Entity<Category>()
+        .HasOne(c => c.padre)
+        .WithMany(c => c.categorias)
+        .HasForeignKey(c => c.padre_id);
+
+      _ = modelBuilder.Entity<Category>().HasData(
+          new Category
+          {
+            id = "1862b90e-034c-4ce2-9e26-0d3c8ce875e9",
+            nombre = "Alimento bebible de Soya",
+            prefijo = "01",
+            padre_id = null,
+          },
+          new Category { padre_id = null, id = "20368c37-79ab-4bde-aca2-1ff189012374", nombre = "Bebidas", prefijo = "02" },
+          new Category
+          {
+            id = "160d1544-5256-445a-9b82-17ba620fc157",
+            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374",
+            nombre = "Agua",
+            prefijo = "21"
+          },
+          new Category
+          {
+            id = "968c060a-d5d4-4d3c-997f-80821d65f022",
+            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374",
+            nombre = "Bebida refrescante",
+            prefijo = "22"
+          },
+          new Category
+          {
+            id = "984709a0-79f0-4825-9242-940cdeec6f92",
+            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374",
+            nombre = "Juguito",
+            prefijo = "23"
+          },
+          new Category
+          {
+            id = "9cf7e664-68e5-424f-9dc1-de4780e2c789",
+            padre_id = "20368c37-79ab-4bde-aca2-1ff189012374",
+            nombre = "Frutts tetra",
+            prefijo = "24"
+          } ,
+          new Category
+          {
+            id = "b377cf12-b224-469e-8898-074c1e08fc6c",
+            nombre = "Cafe",
+            prefijo = "03"
+          },
+          new Category
+          {
+            id = "ab9a9c37-31de-47ee-89a5-1e0921220438",
+            nombre = "Congelados",
+            prefijo = "04"
+          },
+          new Category
+          {
+            id = "3d4901fc-71f4-4586-9bd3-a77d2a71c814",
+            nombre = "Conservas de frutas",
+            prefijo = "05"
+          },
+          new Category
+          {
+            id = "fc60f291-c024-48e6-ba0b-ae14272d8d70",
+            nombre = "Crema respostera",
+            prefijo = "06"
+          },
+          new Category
+          {
+            id = "e415d736-eaee-4563-93d6-052f22b7305e",
+            nombre = "Dulce de leche",
+            prefijo = "07"
+          },
+          new Category
+          {
+            id = "744fa27c-41c6-4337-b968-90b5677c3711",
+            nombre = "Fideos",
+            prefijo = "08"
+          },
+          new Category
+          {
+            id = "e64b0949-a59f-4309-85a1-b08bcfe80196",
+            nombre = "Leche de condensada",
+            prefijo = "09"
+          },
+          new Category
+          {
+            id = "d82b11f5-2ac7-44c1-af01-da95afb72ab5",
+            nombre = "Leches Fluidas",
+            prefijo = "10"
+          },
+          new Category
+          {
+            id = "e9845636-3ce3-43f8-9d80-002a83a7d105",
+            nombre = "Lomitos de atun",
+            prefijo = "11"
+          },
+          new Category
+          {
+            id = "fb648f85-1dfc-434e-93ed-9f8d84a0967d",
+            nombre = "Mantequilla",
+            prefijo = "12"
+          },
+          new Category
+          {
+            id = "27ddffa1-46cd-4ffa-b256-d5f31af645df",
+            nombre = "Margarina",
+            prefijo = "13"
+          },
+          new Category
+          {
+            id = "50c686ed-915e-4edb-acc4-4cc3ba11fa84",
+            nombre = "Mermelada",
+            prefijo = "14"
+          },
+          new Category
+          {
+            id = "5365364f-784d-4ae3-ba10-02b1da5aea66",
+            nombre = "Panetones",
+            prefijo = "15"
+          }
+          );
 
             modelBuilder.Entity<Product>().HasData(
                 new Product
