@@ -30,6 +30,13 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
           Categorias
         </NavLink>
         <NavLink
+          to={"store"}
+          className="no-underline hover:text-orange-500 font-bold"
+        >
+          <Store />
+          Almacen
+        </NavLink>
+        <NavLink
           to={"/login"}
           className={"no-underline hover:text-orange-500 font-bold ml-auto"}
         >

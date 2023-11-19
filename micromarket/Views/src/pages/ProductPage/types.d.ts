@@ -7,7 +7,6 @@ interface Product {
   precio: string;
   descripción: string;
   imagenURL: string;
-  categoria: Category
-  categoriaId: string
-  imagen: FileList
+  categoria: Category;
+  categoriaId: string;
 }

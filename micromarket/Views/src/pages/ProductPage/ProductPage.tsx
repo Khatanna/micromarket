@@ -1,9 +1,12 @@
 import { ProductList } from "./components/ProductList";
+import { ProductProvider } from "./context/ProductContext";
 
 const ProductPage = () => {
   return (
     <div>
-      <ProductList />
+      <ProductProvider>
+        <ProductList />
+      </ProductProvider>
     </div>
   );
 };

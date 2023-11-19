@@ -9,6 +9,8 @@ namespace micromarket.Models
     {
         [Key]
         public string id { get; set; }
+
+        [MaxLength(100)]
         public string nombre { get; set; }
 
         public ICollection<User> users { get; set; }

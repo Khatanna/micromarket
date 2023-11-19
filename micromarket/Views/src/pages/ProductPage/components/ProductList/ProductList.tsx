@@ -5,8 +5,9 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Skeleton,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
@@ -18,6 +19,8 @@ import { ProductDetail } from "../ProductDetail";
 import { ProductForm } from "../ProductForm";
 import { ProductScanner } from "../ProductScanner";
 import { Product } from "../../types";
+import { useProductContext } from "../../hooks/useProductContext";
+import { ProductImage } from "../ProductImage";
 
 export type ProductListProps = {};
 
@@ -25,68 +28,60 @@ const columns: TableColumn<Product>[] = [
   {
     name: "Codigo",
     selector: (row) => row.codigo,
-    sortable: true
+    sortable: true,
   },
   {
     name: "Nombre",
     selector: (row) => row.nombre,
     grow: 2,
-    sortable: true
+    sortable: true,
   },
   {
     name: "Descripción",
     selector: (row) => row.descripción,
     grow: 3,
-    sortable: true
+    sortable: true,
   },
   {
     name: "Categoria",
     selector: (row) => row.categoria.nombre,
     grow: 2,
-    sortable: true
+    sortable: true,
   },
   {
     name: "Precio",
     selector: (row) => row.precio.concat("Bs."),
-    sortable: true
+    sortable: true,
   },
-  {
-    name: "Imagen",
-    cell: (row) => (
-      <img src={row.imagenURL} alt={row.nombre} title={row.nombre} width={50} />
-    ),
-  },
+  // {
+  //   name: "Imagen",
+  //   cell: (row) => <ProductImage product={row} height={50} width={50} />,
+  // },
   {
     cell: (row) => <ButtonMenu product={row} />,
   },
 ];
 
-export const content: Record<string, React.FC<{ onClose: () => void }>> = {
-  modalCreate: ProductForm,
-  modalScan: ProductScanner,
-  modalProduct: ProductDetail
-}
-type ContentKey = keyof typeof content;
-const ProductList: React.FC<ProductListProps> = ({ }) => {
+const ProductList: React.FC<ProductListProps> = ({}) => {
   const { axios } = useAxiosStore();
-  const [code, setCode ] = useState('');
-  const { setProduct, modal, setModal } = useProductStore();
-
+  const [code, setCode] = useState("");
+  const { showProduct } = useProductContext();
   const { data, isLoading, error, refetch } = useQuery<Product[]>({
     queryKey: ["getAllProducts"],
     queryFn: async () => {
       return (await axios.get("/products")).data;
     },
   });
-
-  const handleOpen = ({ title, contentKey }: { title: string, contentKey: ContentKey }) => setModal({ title, open: true, content: content[contentKey] });
-  const handleClose = () => setModal({ open: false });
-  
   const subHeaderComponentMemo = React.useMemo(() => {
-		return (
-			<TextField size="small" label="Buscar por codigo" onChange={e => setCode(e.target.value)} value={code} />
-		);
-	}, [code]);
+    return (
+      <TextField
+        size="small"
+        label="Buscar por codigo"
+        onChange={(e) => setCode(e.target.value)}
+        value={code}
+      />
+    );
+  }, [code]);
 
   return (
     <>
@@ -104,7 +99,11 @@ const ProductList: React.FC<ProductListProps> = ({ }) => {
           },
         }}
         columns={columns}
-        data={data?.filter(p => p.codigo.toLocaleLowerCase().includes(code.toLowerCase())) ?? []}
+        data={
+          data?.filter((p) =>
+            p.codigo.toLocaleLowerCase().includes(code.toLowerCase()),
+          ) ?? []
+        }
         selectableRows
         paginationComponentOptions={{
           rangeSeparatorText: "de",
@@ -118,17 +117,15 @@ const ProductList: React.FC<ProductListProps> = ({ }) => {
               variant="outlined"
               color="success"
               startIcon={<AddBox />}
-              onClick={() => handleOpen({ title: 'Crear producto', contentKey: "modalCreate"})}
+              onClick={
+                () => {}
+                // handleOpen({
+                //   title: "Crear producto",
+                //   contentKey: "modalCreate",
+                // })
+              }
             >
               Añadir producto
-            </Button>
-            <Button
-              variant="outlined"
-              color="info"
-              startIcon={<Scanner />}
-              onClick={() => handleOpen({ title: 'Escanear producto', contentKey: 'modalScan'})}
-            >
-              Scanear producto
             </Button>
           </div>
         }
@@ -162,8 +159,8 @@ const ProductList: React.FC<ProductListProps> = ({ }) => {
               {data && data.length === 0
                 ? "Aun no hay productos en el sistema 🤯"
                 : error
-                  ? error.message
-                  : "Ocurrio un error 😥"}
+                ? error.message
+                : "Ocurrio un error 😥"}
             </Typography>
             {error && (
               <Button LinkComponent={"div"} onClick={() => refetch()}>
@@ -172,19 +169,12 @@ const ProductList: React.FC<ProductListProps> = ({ }) => {
             )}
           </div>
         }
-        onRowDoubleClicked={(row) => {
-          setProduct(row);
-          handleOpen({ title: `Detalle de producto: (${row.nombre})`, contentKey: 'modalProduct' })
+        onRowDoubleClicked={(product) => {
+          showProduct(product);
         }}
         progressPending={isLoading}
         progressComponent={<CircularProgress />}
       />
-      <Dialog open={modal.open} onClose={handleClose}>
-        <DialogTitle>{modal.title}</DialogTitle>
-        <DialogContent>
-          {modal.content && <modal.content onClose={handleClose} />}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
