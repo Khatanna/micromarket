@@ -9,10 +9,11 @@ namespace micromarket.Models
     {
         [Key]
         public String? codigo { get; set; }
-
-        public String nombre { get; set; }
+    [MaxLength(100)]
+    public String nombre { get; set; }
         public String precio { get; set; }
-        public String descripción { get; set; }
+    [MaxLength(255)]
+    public String descripción { get; set; }
 
         public String? imagenURL { get; set; }
 

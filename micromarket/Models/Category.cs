@@ -9,6 +9,7 @@ namespace micromarket.Models
     [Key]
     public String id { get; set; }
 
+    [MaxLength(100)]
     public String nombre { get; set; }
 
     public String prefijo { get; set; }
