@@ -7,15 +7,16 @@ import { useAxiosStore } from "../../../../state/useAxiosStore";
 import { useProductContext } from "../../hooks/useProductContext";
 import { Product } from "../../types";
 import { ButtonMenu } from "../ButtonMenu";
+import { defaultTableProps } from "../../../../utils/defaultTableProps";
 
 export type ProductListProps = {};
 
 const columns: TableColumn<Product>[] = [
-  {
-    name: "Codigo",
-    selector: (row) => row.codigo,
-    sortable: true,
-  },
+  // {
+  //   name: "Codigo",
+  //   selector: (row) => row.codigo,
+  //   sortable: true,
+  // },
   {
     name: "Nombre",
     selector: (row) => row.nombre,
@@ -39,10 +40,6 @@ const columns: TableColumn<Product>[] = [
     selector: (row) => row.precio.concat("Bs."),
     sortable: true,
   },
-  // {
-  //   name: "Imagen",
-  //   cell: (row) => <ProductImage product={row} height={50} width={50} />,
-  // },
   {
     cell: (row) => <ButtonMenu product={row} />,
   },
@@ -51,7 +48,7 @@ const columns: TableColumn<Product>[] = [
 const ProductList: React.FC<ProductListProps> = ({}) => {
   const { axios } = useAxiosStore();
   const [code, setCode] = useState("");
-  const { showProduct } = useProductContext();
+  const { showProduct, showFormProduct } = useProductContext();
   const { data, isLoading, error, refetch } = useQuery<Product[]>({
     queryKey: ["getAllProducts"],
     queryFn: async () => {
@@ -85,12 +82,7 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
           },
         }}
         columns={columns}
-        data={
-          data?.filter((p) =>
-            p.codigo.toLocaleLowerCase().includes(code.toLowerCase()),
-          ) ?? []
-        }
-        selectableRows
+        data={data ?? []}
         paginationComponentOptions={{
           rangeSeparatorText: "de",
           rowsPerPageText: "Productos por pagina",
@@ -103,23 +95,15 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
               variant="outlined"
               color="success"
               startIcon={<AddBox />}
-              onClick={
-                () => {}
-                // handleOpen({
-                //   title: "Crear producto",
-                //   contentKey: "modalCreate",
-                // })
-              }
+              onClick={() => {
+                showFormProduct();
+              }}
             >
               Añadir producto
             </Button>
           </div>
         }
-        pointerOnHover
-        striped
         subHeader={Boolean(data)}
-        pagination
-        fixedHeader
         fixedHeaderScrollHeight="70vh"
         subHeaderComponent={subHeaderComponentMemo}
         subHeaderAlign={Alignment.LEFT}
@@ -128,8 +112,6 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
             Lista de productos
           </Typography>
         }
-        responsive
-        highlightOnHover
         noDataComponent={
           <div>
             <Typography
@@ -160,6 +142,7 @@ const ProductList: React.FC<ProductListProps> = ({}) => {
         }}
         progressPending={isLoading}
         progressComponent={<CircularProgress />}
+        {...defaultTableProps}
       />
     </>
   );

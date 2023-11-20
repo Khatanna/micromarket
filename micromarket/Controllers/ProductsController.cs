@@ -9,88 +9,86 @@ using micromarket.Config;
 using micromarket.Models;
 using System.Configuration;
 
-namespace micromarket.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
-    {
-        private readonly MySqlDbContext _context;
+namespace micromarket.Controllers {
+  [Route("api/[controller]")]
+  [ApiController]
+  public class ProductsController : ControllerBase {
+    private readonly MySqlDbContext _context;
 
-        public ProductsController(MySqlDbContext context)
+    public ProductsController(MySqlDbContext context) {
+      _context = context;
+      }
+
+    // GET: api/Products
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<dynamic>>> GetProduct() {
+      if (_context.Product == null)
         {
-            _context = context;
+        return NotFound();
         }
+      return await _context.Product
+        .Include(p => p.categoria) 
+        .Select(p =>  new { p.id, p.nombre, p.precio, p.descripción, p.categoriaId, p.imagenURL, categoria = new { p.categoria.nombre } })
+        .ToListAsync();
+      }
 
-        // GET: api/Products
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
+    // GET: api/Products/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Product>> GetProduct(string id) {
+      if (_context.Product == null)
         {
-          if (_context.Product == null)
-          {
-              return NotFound();
-          }
-            return await _context.Product.Include(p => p.categoria).ToListAsync();
+        return NotFound();
         }
+      var product = await _context.Product.FindAsync(id);
 
-        // GET: api/Products/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(string id)
+      if (product == null)
         {
-          if (_context.Product == null)
-          {
-              return NotFound();
-          }
-            var product = await _context.Product.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return product;
+        return NotFound();
         }
-
-        // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Product>> PutProduct(string id, Product product)
-        {
-            if (id != product.codigo)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(product).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
       return product;
+      }
+
+    // PUT: api/Products/5
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut("{id}")]
+    public async Task<ActionResult<Product>> PutProduct(string id, Product product) {
+      if (id != product.id)
+        {
+        return BadRequest();
         }
 
-        // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+      // var category = 
+
+      _context.Entry(product).State = EntityState.Modified;
+
+      try
         {
-          if (_context.Product == null)
+        await _context.SaveChangesAsync();
+        }
+      catch (DbUpdateConcurrencyException)
+        {
+        if (!ProductExists(id))
           {
-              return Problem("Entity set 'MySqlDbContext.Product'  is null.");
+          return NotFound();
           }
+        else
+          {
+          throw;
+          }
+        }
+
+      return product;
+      }
+
+    // POST: api/Products
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<Product>> PostProduct(Product product) {
+      if (_context.Product == null)
+        {
+        return Problem("Entity set 'MySqlDbContext.Product'  is null.");
+        }
       //Product lastProduct = _context.Product.OrderByDescending(p => p.codigo).First();
       //      if (lastProduct == null)
       //{
@@ -102,49 +100,48 @@ namespace micromarket.Controllers
       // var category = _context.Category.Find(product.categoriaId).prefijo;
 
       // product.codigo = $"DNT-{category}-{code}";
-            _context.Product.Add(product);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (ProductExists(product.codigo))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetProduct", new { id = product.codigo }, product);
-        }
-
-        // DELETE: api/Products/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Product>> DeleteProduct(string id)
+      product.id = Guid.NewGuid().ToString();
+      _context.Product.Add(product);
+      try
         {
-            if (_context.Product == null)
-            {
-                return NotFound();
-            }
-            var product = await _context.Product.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            _context.Product.Remove(product);
-            await _context.SaveChangesAsync();
-
-            return product;
+        await _context.SaveChangesAsync();
         }
-
-        private bool ProductExists(string id)
+      catch (DbUpdateException)
         {
-            return (_context.Product?.Any(e => e.codigo == id)).GetValueOrDefault();
+        if (ProductExists(product.id))
+          {
+          return Conflict();
+          }
+        else
+          {
+          throw;
+          }
         }
+
+      return CreatedAtAction("GetProduct", new { id = product.id }, product);
+      }
+
+    // DELETE: api/Products/5
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<Product>> DeleteProduct(string id) {
+      if (_context.Product == null)
+        {
+        return NotFound();
+        }
+      var product = await _context.Product.FindAsync(id);
+      if (product == null)
+        {
+        return NotFound();
+        }
+
+      _context.Product.Remove(product);
+      await _context.SaveChangesAsync();
+
+      return product;
+      }
+
+    private bool ProductExists(string id) {
+      return (_context.Product?.Any(e => e.id == id)).GetValueOrDefault();
+      }
     }
-}
+  }

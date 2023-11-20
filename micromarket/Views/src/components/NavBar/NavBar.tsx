@@ -1,10 +1,8 @@
-import { Category, Person, Store } from "@mui/icons-material";
+import { Category, Inventory, Person, Store } from "@mui/icons-material";
 import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
-export type NavBarProps = {};
-
-const NavBar: React.FC<NavBarProps> = ({}) => {
+const NavBar: React.FC = () => {
   return (
     <div className="h-screen flex flex-col content-center items-center">
       <div className="flex gap-5 container p-4 shadow-lg mb-2">
@@ -22,18 +20,18 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
           <Store />
           Productos
         </NavLink>
-        <NavLink
+        {/* <NavLink
           to={"categories"}
           className="no-underline hover:text-orange-500 font-bold"
         >
           <Category />
           Categorias
-        </NavLink>
+        </NavLink> */}
         <NavLink
           to={"store"}
           className="no-underline hover:text-orange-500 font-bold"
         >
-          <Store />
+          <Inventory />
           Almacen
         </NavLink>
         <NavLink

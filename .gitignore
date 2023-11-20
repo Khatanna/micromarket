@@ -361,3 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+./vs
+.vs
+./micromarket/Migrations
+./micromarket/appsettings.json
+./micromarket/Properties/launchSettings.json
+/micromarket/Migrations
+/micromarket/appsettings.json
+/micromarket/Properties/launchSettings.json
+micromarket/Migrations
+micromarket/appsettings.json
+micromarket/Properties/launchSettings.json

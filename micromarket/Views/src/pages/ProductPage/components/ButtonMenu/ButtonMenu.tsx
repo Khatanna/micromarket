@@ -11,16 +11,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAxiosStore } from "../../../../state/useAxiosStore";
 import { Product } from "../../types";
-import { useProductStore } from "../../state/useProductStore";
-// import { content } from "../ProductList/ProductList";
+import { useProductContext } from "../../hooks/useProductContext";
 export type ButtonMenuProps = {
   product: Product;
 };
 
 const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { setProduct, setModal } = useProductStore();
   const queryClient = useQueryClient();
+  const { showFormProduct } = useProductContext();
   const { axios } = useAxiosStore();
   const { mutate } = useMutation<
     Product,
@@ -28,16 +27,16 @@ const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
     Product,
     { optimisticData: Product[] | undefined }
   >({
-    mutationFn: async ({ codigo }: Product) => {
-      return (await axios.delete<Product>(`/products/${codigo}`)).data;
+    mutationFn: async ({ id }: Product) => {
+      return (await axios.delete<Product>(`/products/${id}`)).data;
     },
-    onMutate({ codigo }) {
+    onMutate({ id }) {
       const previousData = queryClient.getQueryData<Product[]>([
         "getAllProducts",
       ]);
       queryClient.setQueryData(
         ["getAllProducts"],
-        previousData?.filter((p) => p.codigo !== codigo),
+        previousData?.filter((p) => p.id !== id),
       );
 
       return { optimisticData: previousData };
@@ -61,7 +60,7 @@ const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
   };
 
   return (
-    <div>
+    <>
       <IconButton
         id="button"
         size="small"
@@ -78,8 +77,7 @@ const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
       >
         <MenuItem
           onClick={() => {
-            setProduct(product);
-            // setModal({title: "Actualizar producto", open: true , content: content["modalCreate"]})
+            showFormProduct(product);
           }}
         >
           <ListItemIcon>
@@ -94,7 +92,7 @@ const ButtonMenu: React.FC<ButtonMenuProps> = ({ product }) => {
           <ListItemText>Eliminar</ListItemText>
         </MenuItem>
       </Menu>
-    </div>
+    </>
   );
 };
 

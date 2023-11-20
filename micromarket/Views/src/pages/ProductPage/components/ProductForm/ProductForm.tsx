@@ -1,8 +1,8 @@
+import { CheckCircle, CloudUpload } from "@mui/icons-material";
 import {
   Button,
   CircularProgress,
   FormControl,
-  Input,
   InputLabel,
   Select,
   Stack,
@@ -10,61 +10,66 @@ import {
   styled,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect } from "react";
+import { AxiosError } from "axios";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { storage } from "../../../../services/firebaseStore";
 import { useAxiosStore } from "../../../../state/useAxiosStore";
 import { Category } from "../../../CategoryPage/types";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
 import { Product } from "../../types";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../../../services/firebaseStore";
-import { CloudUpload } from "@mui/icons-material";
-import { useProductStore } from "../../state/useProductStore";
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
+  whiteSpace: "nowrap",
   width: 1,
 });
 
 export type ProductFormProps = {
+  product?: Product;
   onClose: () => void;
 };
 
 const CategorySelect: React.FC<{ category: Category }> = ({ category }) => {
   if (!category.categorias || category.categorias.length === 0) {
-    return <option value={category.id}>{category.nombre}</option>
+    return <option value={category.id}>{category.nombre}</option>;
   }
 
-  return <optgroup label={category.nombre}>
-    {category.categorias.map(c => (
-      <CategorySelect category={c} />
-    ))}
-  </optgroup>
-}
+  return (
+    <optgroup label={category.nombre}>
+      {category.categorias.map((c) => (
+        <CategorySelect category={c} />
+      ))}
+    </optgroup>
+  );
+};
 
-const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ product, onClose }) => {
   const queryClient = useQueryClient();
-  const { product, setProduct } = useProductStore();
   const { register, handleSubmit } = useForm<Product>({
-    defaultValues: product
+    defaultValues: product,
   });
   const { axios } = useAxiosStore();
-  const { data, isLoading, error } = useQuery<Category[]>({
+  const { data, isLoading } = useQuery<Category[]>({
     queryKey: ["getAllCategories"],
     queryFn: async () => {
       return (await axios.get("/categories")).data;
     },
   });
-  const { mutate: create } = useMutation<Product, AxiosError, Product, { optimisticData: Product[] }>({
+  const { mutate: create } = useMutation<
+    Product,
+    AxiosError,
+    Product,
+    { optimisticData: Product[] }
+  >({
     mutationFn: async (data) => {
-      return (await axios.post('/products', data)).data;
+      return (await axios.post("/products", data)).data;
     },
     onSuccess({ nombre }) {
       toast.success(`Producto (${nombre}) creado`);
@@ -78,11 +83,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
         queryClient.setQueryData(["getAllProducts"], context.optimisticData);
       }
     },
-  })
+  });
 
-  const { mutate: update, mutateAsync } = useMutation<Product, AxiosError, Product, { optimisticData: Product[] }>({
+  const { mutate: update, mutateAsync } = useMutation<
+    Product,
+    AxiosError,
+    Product,
+    { optimisticData: Product[] }
+  >({
     mutationFn: async (data) => {
-      return (await axios.put(`/products/${data.codigo}`, data)).data;
+      return (
+        await axios.put(`/products/${data.id}`, {
+          ...data,
+          categoria: undefined,
+        })
+      ).data;
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["getAllProducts"] });
@@ -93,12 +108,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
         queryClient.setQueryData(["getAllProducts"], context.optimisticData);
       }
     },
-  })
-  useEffect(() => {
-    return () => {
-      setProduct(undefined);
-    }
-  }, [])
+  });
+  const [isUpload, setIsUpload] = useState(false);
   const submit = async (data: Product) => {
     const image = data.imagen[0];
     if (product) {
@@ -114,26 +125,27 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
               success: (imagenURL) => {
                 update({
                   ...data,
-                  imagenURL
+                  imagenURL,
                 });
 
-                return "Se obtuvo la direccion"
-              }
-            })
+                return "Se obtuvo la direccion";
+              },
+            });
 
-            return "Image subida correctamente"
+            return "Image subida correctamente";
           },
-        })
+        });
       } else {
-        toast.promise(mutateAsync({...product, ...data}), {
+        toast.promise(mutateAsync({ ...product, ...data }), {
           loading: `Actualizando: ${data.nombre}`,
           success: (data) => {
             return `Producto (${data.nombre}) actualizado`;
           },
-          error: () => {
-            return `No se pudo actualizar el producto: (${data.nombre})`
-          }
-        })
+          error: (error) => {
+            console.log(error);
+            return `No se pudo actualizar el producto: (${data.nombre})`;
+          },
+        });
       }
     } else {
       const imageRef = ref(storage, image.name);
@@ -147,27 +159,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
             success: (imagenURL) => {
               create({
                 ...data,
-                imagenURL
+                imagenURL,
               });
 
-              return "Se obtuvo la direccion"
-            }
-          })
+              return "Se obtuvo la direccion";
+            },
+          });
 
-          return "Image subida correctamente"
+          return "Image subida correctamente";
         },
-      })
+      });
     }
-  }
+  };
   return (
     <form onSubmit={handleSubmit(submit)}>
       <Stack spacing={3} width={300}>
         <Stack spacing={3}>
-          <TextField
-            {...register("codigo")}
-            label="Codigo"
-            variant="standard"
-          />
           <TextField
             {...register("nombre")}
             label="Nombre"
@@ -185,7 +192,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
             label="Precio"
             variant="standard"
             type="text"
-            
           />
           {isLoading ? (
             <div className="flex justify-center border p-2 rounded">
@@ -194,17 +200,32 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose }) => {
           ) : (
             <FormControl size="small">
               <InputLabel variant="outlined">Categoria</InputLabel>
-              <Select variant="outlined" label="Categoria" native {...register('categoriaId')} >
+              <Select
+                variant="outlined"
+                label="Categoria"
+                native
+                {...register("categoriaId")}
+              >
                 <option aria-label="None" value=""></option>
-                {data?.map((category) =>
+                {data?.map((category) => (
                   <CategorySelect category={category} />
-                )}
+                ))}
               </Select>
             </FormControl>
           )}
-          <Button component="label" variant="contained" startIcon={<CloudUpload />}>
-            {product ?  "Reemplazar" : "Subir"} imagen
-            <VisuallyHiddenInput type="file" {...register('imagen')} />
+          <Button
+            component="label"
+            variant={!isUpload ? "contained" : "outlined"}
+            color="warning"
+            onChange={(e) => setIsUpload(e.target.files.length === 1)}
+            startIcon={isUpload ? <CheckCircle /> : <CloudUpload />}
+          >
+            {isUpload
+              ? "Imagen subida"
+              : product
+              ? "Reemplazar imagen"
+              : "Subir imagen"}
+            <VisuallyHiddenInput type="file" {...register("imagen")} />
           </Button>
         </Stack>
         <Button type="submit" variant="contained" color="success">

@@ -5,8 +5,6 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material";
-import React from "react";
-import Barcode from "react-barcode";
 import { Product } from "../../types";
 import { ProductImage } from "../ProductImage";
 
@@ -15,18 +13,14 @@ export type ProductDetailProps = {
 };
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ product }) => {
-  const { categoria, codigo, descripción, nombre, precio } = product;
+  const { categoria, descripción, nombre, precio } = product;
 
   return (
     <DialogContent>
       <Card sx={{ maxWidth: 550 }}>
         <CardContent className="flex flex-row gap-3">
-          <div className="flex flex-col items-center">
-            <ProductImage product={product} />
-            <div>
-              <Barcode value={codigo} width={1.4} height={50} />
-            </div>
-          </div>
+          <ProductImage product={product} height={250} />
+          {/* <div className="flex flex-col items-center"></div> */}
           <div className="flex flex-col justify-between">
             <div className="flex gap-2 flex-col ">
               <Typography variant="body2" color="text.secondary">

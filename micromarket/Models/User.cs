@@ -10,6 +10,7 @@ namespace micromarket.Models
   public class User
   {
     [Key]
+    public string id { get; set; }
     public string? nombre_de_usuario { get; set; }
     [MaxLength(100)]
     public string? contraseña { get; set; }
